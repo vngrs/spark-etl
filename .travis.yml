@@ -9,4 +9,14 @@ jdk:
   - oraclejdk7
   - oraclejdk8
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean coverage test
+  - sbt ++$TRAVIS_SCALA_VERSION  clean coverage test coverageReport &&
+    sbt coverageAggregate
+after_success:
+  - sbt coveralls
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/aef733c0903d3e0594f8
+    on_success: change
+    on_failure: always
+    on_start: never
