@@ -14,8 +14,8 @@ libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % versions.scalatest,
   "org.scalatest" %% "scalatest" % versions.scalatest % "test"
 )
-// removing sbt warnings
-.map(_.excludeAll(
+  // removing sbt warnings
+  .map(_.excludeAll(
   ExclusionRule(organization = "com.google.code.findbugs"),
   ExclusionRule(organization = "xmlenc"),
   ExclusionRule(organization = "commons-beanutils"),
@@ -39,4 +39,11 @@ wartremoverErrors ++= Warts.unsafe
 // wartremover bug #106
 wartremoverWarnings ++= Warts.allBut(Wart.NoNeedForMonad)
 
+// coverage settings
 coverageEnabled := true
+
+coverageMinimum := 80
+
+coverageFailOnMinimum := true
+
+coverageHighlighting := false
