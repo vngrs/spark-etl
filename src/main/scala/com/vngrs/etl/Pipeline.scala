@@ -1,0 +1,89 @@
+package com.vngrs.etl
+
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
+
+import scala.reflect.ClassTag
+
+final class Pipeline[A](val rdd: RDD[A]) extends AnyVal {
+  def transform[B: ClassTag](transformer: Transformer[A, B]): Pipeline[B] = Pipeline(transformer(this.rdd))
+
+  def load(loaders: Loader[A]*): Unit = loaders.foreach(_(this.rdd))
+
+  def zip[B: ClassTag](other: Pipeline[B]): Pipeline[(A, B)] = new Pipeline(rdd.zip(other.rdd))
+
+  def union(other: Pipeline[A]): Pipeline[A] = new Pipeline(rdd.union(other.rdd))
+}
+
+object Pipeline {
+  def apply[A: ClassTag](extractor: Extractor[A])(implicit sc: SparkContext): Pipeline[A] = Pipeline(extractor(sc))
+
+  def apply[A: ClassTag](iterable: Iterable[A])(implicit sc: SparkContext): Pipeline[A] = Pipeline(sc.parallelize[A](iterable.toSeq))
+
+  def apply[A: ClassTag](arr: Array[A])(implicit sc: SparkContext): Pipeline[A] = Pipeline(sc.parallelize[A](arr))
+
+  def apply[A: ClassTag](rdd: RDD[A]): Pipeline[A] = new Pipeline(rdd)
+}
+
+private object UsageExamples {
+
+  implicit val sc: SparkContext = new SparkContext()
+
+  val extractor = new Extractor[String] {
+    override def apply(sc: SparkContext): RDD[String] = sc.parallelize[String](Seq("A", "B", "C"))
+  }
+
+  val transformer = new Transformer[String, String] {
+    override def apply(data: RDD[String]): RDD[String] = data.map(_.toLowerCase())
+  }
+
+  val squareTrans = new Transformer[Double, Double] {
+    override def apply(data: RDD[Double]): RDD[Double] = data.map(Math.pow(2, _))
+  }
+
+  final case class PowTrans(pow: Double) extends Transformer[Int, Double] {
+    override def apply(data: RDD[Int]): RDD[Double] = data.map(Math.pow(pow, _))
+  }
+
+  val loader = new Loader[String] {
+    override def apply(data: RDD[String]): Loader[String] = {
+      data.saveAsTextFile("path")
+      this
+    }
+  }
+
+  val extractorNum = new Extractor[Int] {
+    override def apply(sc: SparkContext): RDD[Int] = sc.parallelize[Int](Seq(1, 2, 3))
+  }
+
+  val transformerNum = new Transformer[(String, Int), String] {
+    override def apply(data: RDD[(String, Int)]): RDD[String] = data.map(t => s"${t._1}|${t._2}")
+  }
+
+  val loader2 = new Loader[String] {
+    override def apply(data: RDD[String]): Loader[String] = {
+      data.saveAsTextFile("path")
+      this
+    }
+  }
+
+  Pipeline(extractor)
+    .transform(transformer)
+    .load(loader)
+
+  Pipeline(extractor)
+    .zip(Pipeline(extractorNum))
+    .transform(transformerNum)
+    .load(loader)
+
+  Pipeline(extractor)
+    .zip(Pipeline(extractorNum))
+    .transform(transformerNum)
+    .load(loader, loader2)
+
+  Pipeline(extractorNum)
+    .transform(PowTrans(2.0d))
+    .transform(Transformer.filter(_ > 15))
+    .transform(Transformer(_.toString))
+    .load(loader)
+}
