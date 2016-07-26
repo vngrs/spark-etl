@@ -5,27 +5,21 @@ import org.apache.spark.sql.Row
 
 trait Loader[A] {
 
-  protected[etl] def apply(input: RDD[A]): Loader[A]
+  def apply(input: RDD[A]): Unit
 
 }
 
 object Loader {
   def apply[A](f: RDD[A] => Unit): Loader[A] = new Loader[A]() {
-    override def apply(data: RDD[A]): Loader[A] = {
-      f(data)
-      this
-    }
+    override def apply(data: RDD[A]): Unit = f(data)
   }
 
   def file(path: String): Loader[String] = new Loader[String] {
-    override protected[etl] def apply(input: RDD[String]): Loader[String] = {
-      input.saveAsTextFile(path)
-      this
-    }
+    override def apply(input: RDD[String]): Unit = input.saveAsTextFile(path)
   }
 
   def redshift(): Loader[Row] = new Loader[Row] {
-    protected[etl] def apply(input: RDD[Row]): Loader[Row] = this
+    override def apply(input: RDD[Row]): Unit = { /*  */ }
   }
 
 }

@@ -6,9 +6,9 @@ import org.apache.spark.rdd.RDD
 import scala.reflect.ClassTag
 
 final class Pipeline[A](val rdd: RDD[A]) extends AnyVal {
-  def transform[B: ClassTag](transformer: Transformer[A, B]): Pipeline[B] = Pipeline(transformer(this.rdd))
+  def transform[B: ClassTag](transformer: Transformer[A, B]): Pipeline[B] = Pipeline(transformer(rdd))
 
-  def load(loaders: Loader[A]*): Unit = loaders.foreach(_(this.rdd))
+  def load(loaders: Loader[A]*): Unit = loaders.foreach(loader => loader(rdd))
 
   def zip[B: ClassTag](other: Pipeline[B]): Pipeline[(A, B)] = new Pipeline(rdd.zip(other.rdd))
 
@@ -37,19 +37,12 @@ private object UsageExamples {
     override def apply(data: RDD[String]): RDD[String] = data.map(_.toLowerCase())
   }
 
-  val squareTrans = new Transformer[Double, Double] {
-    override def apply(data: RDD[Double]): RDD[Double] = data.map(Math.pow(2, _))
-  }
-
-  final case class PowTrans(pow: Double) extends Transformer[Int, Double] {
-    override def apply(data: RDD[Int]): RDD[Double] = data.map(Math.pow(pow, _))
+  val squareTrans = new Transformer[Int, Double] {
+    override def apply(data: RDD[Int]): RDD[Double] = data.map(Math.pow(2, _))
   }
 
   val loader = new Loader[String] {
-    override def apply(data: RDD[String]): Loader[String] = {
-      data.saveAsTextFile("path")
-      this
-    }
+    override def apply(data: RDD[String]): Unit = data.saveAsTextFile("path")
   }
 
   val extractorNum = new Extractor[Int] {
@@ -61,10 +54,15 @@ private object UsageExamples {
   }
 
   val loader2 = new Loader[String] {
-    override def apply(data: RDD[String]): Loader[String] = {
-      data.saveAsTextFile("path")
-      this
-    }
+    override def apply(data: RDD[String]): Unit = data.saveAsTextFile("path")
+  }
+
+  final case class PowTrans(pow: Double) extends Transformer[Int, Double] {
+    override def apply(data: RDD[Int]): RDD[Double] = data.map(Math.pow(pow, _))
+  }
+
+  final case class FileLoader(path: String) extends Loader[String] {
+    override def apply(data: RDD[String]): Unit = data.saveAsTextFile("path")
   }
 
   Pipeline(extractor)
@@ -84,6 +82,11 @@ private object UsageExamples {
   Pipeline(extractorNum)
     .transform(PowTrans(2.0d))
     .transform(Transformer.filter(_ > 15))
+    .zip(
+      Pipeline(extractorNum)
+        .transform(squareTrans)
+        .transform(Transformer.filter(_ > 3))
+    )
     .transform(Transformer(_.toString))
-    .load(loader)
+    .load(FileLoader("path/to/path"))
 }
