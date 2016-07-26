@@ -62,7 +62,7 @@ private object UsageExamples {
   }
 
   final case class FileLoader(path: String) extends Loader[String] {
-    override def apply(data: RDD[String]): Unit = data.saveAsTextFile("path")
+    override def apply(data: RDD[String]): Unit = data.saveAsTextFile(path)
   }
 
   Pipeline(extractor)
@@ -89,4 +89,9 @@ private object UsageExamples {
     )
     .transform(Transformer(_.toString))
     .load(FileLoader("path/to/path"))
+
+  val pipeline1 = Pipeline(extractorNum)
+  val pipeline2 = Pipeline(extractorNum)
+
+  val zippedPipeline = Aggregator.zip(pipeline1, pipeline2)
 }
