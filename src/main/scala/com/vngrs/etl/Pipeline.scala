@@ -5,7 +5,7 @@ import org.apache.spark.rdd.RDD
 
 import scala.reflect.ClassTag
 
-final class Pipeline[A](val rdd: RDD[A]) extends AnyVal {
+final class Pipeline[A](val rdd: RDD[A]) {
   def transform[B: ClassTag](transformer: Transformer[A, B]): Pipeline[B] = Pipeline(transformer(rdd))
 
   def load(loaders: Loader[A]*): Unit = loaders.foreach(loader => loader(rdd))
@@ -13,6 +13,8 @@ final class Pipeline[A](val rdd: RDD[A]) extends AnyVal {
   def zip[B: ClassTag](other: Pipeline[B]): Pipeline[(A, B)] = new Pipeline(rdd.zip(other.rdd))
 
   def union(other: Pipeline[A]): Pipeline[A] = new Pipeline(rdd.union(other.rdd))
+
+  def combine[B](combiner: Combiner[A, B]): Pipeline[B] = combiner(this)
 }
 
 object Pipeline {
@@ -93,5 +95,5 @@ private object UsageExamples {
   val pipeline1 = Pipeline(extractorNum)
   val pipeline2 = Pipeline(extractorNum)
 
-  val zippedPipeline = Aggregator.zip(pipeline1, pipeline2)
+  val zippedPipeline = pipeline1.combine(Combiner.zip(pipeline2))
 }
