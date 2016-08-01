@@ -8,7 +8,11 @@
 
 spark-etl is a Scala-based project and it is developing with Spark. So it is scalable and distributed. spark-etl will process data from N source to N database.
 The project structure:
-- Extract
+
+**Extract**
+
+<img src="https://media.giphy.com/media/26BRIuiQfAxf5cENO/giphy.gif" alt="alt text" width="250" height="250">
+
   - FILES (json, csv)
   - SQLs
   - NoSQLs
@@ -16,14 +20,20 @@ The project structure:
   - APIs
   - Streams
 
-- Transform
+**Transform**
+
+<img src="https://media.giphy.com/media/l0HlM9TkALAAByr9C/giphy.gif" alt="alt text" width="250" height="250">
+
   - Row to json
   - Row to csv
   - Json to Row
   - Change records
   - Merge records
 
-- Load
+**Load**
+
+<img src="https://media.giphy.com/media/3owypgNGlFWeFZcPXq/giphy.gif" alt="alt text" width="250" height="250">
+
   - FILES (json, csv)
   - SQLs
   - NoSQLs
@@ -31,7 +41,7 @@ The project structure:
   - APIs
   - Streams
 
-Differences between other ETL projects:
+**Pros**
   - parallel ETL on cluster level
   - synchronisation
   - open source
