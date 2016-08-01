@@ -1,6 +1,6 @@
 package com.vngrs.etl.combiners
 
-import com.vngrs.etl.{Combiner, Pipeline}
+import com.vngrs.etl.{Combine, Pipeline}
 
 import scala.reflect.ClassTag
 
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
   * @param pipeline1 First [[com.vngrs.etl.Pipeline]]
   * @tparam A Type of [[com.vngrs.etl.Pipeline]]s
   */
-final case class Unioner[A: ClassTag](pipeline1: Pipeline[A]) extends Combiner[A, A] {
+final case class Union[A: ClassTag](pipeline1: Pipeline[A]) extends Combine[A, A] {
 
   /**
     * Runs union operation.

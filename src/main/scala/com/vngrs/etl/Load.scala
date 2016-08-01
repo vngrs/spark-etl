@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
   *
   * @tparam A Type of loaded the data ([[org.apache.spark.rdd.RDD]]).
   */
-trait Loader[A] {
+trait Load[A] {
 
   /**
     * Runs loading operation.
@@ -20,18 +20,16 @@ trait Loader[A] {
 /**
   * Companion object which acts as a Factory.
   */
-// Since this is a factory object, overloading warning has been suppressed
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-object Loader {
+object Load {
 
   /**
-    * Creates a [[com.vngrs.etl.Loader]] by calling given function `f` on given data.
+    * Creates a [[com.vngrs.etl.Load]] by calling given function `f` on given data.
     *
     * @param f Function to call
     * @tparam A Type of the [[org.apache.spark.rdd.RDD]]
-    * @return [[com.vngrs.etl.Loader]]
+    * @return [[com.vngrs.etl.Load]]
     */
-  def apply[A](f: RDD[A] => Unit): Loader[A] = new Loader[A]() {
+  def apply[A](f: RDD[A] => Unit): Load[A] = new Load[A]() {
 
     /**
       * Loads data by calling function `f`

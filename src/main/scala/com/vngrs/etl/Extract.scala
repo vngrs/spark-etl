@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
   *
   * @tparam A Type of extracted the data ([[org.apache.spark.rdd.RDD]]).
   */
-trait Extractor[A] {
+trait Extract[A] {
 
   /**
     * Runs extraction operation.
@@ -24,18 +24,16 @@ trait Extractor[A] {
 /**
   * Companion object which acts as a Factory.
   */
-// Since this is a factory object, overloading warning has been suppressed
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-object Extractor {
+object Extract {
 
   /**
-    * Creates an [[com.vngrs.etl.Extractor]] from given [[org.apache.spark.rdd.RDD]].
+    * Creates an [[com.vngrs.etl.Extract]] from given [[org.apache.spark.rdd.RDD]].
     *
     * @param rdd [[org.apache.spark.rdd.RDD]]
     * @tparam A Type of the [[org.apache.spark.rdd.RDD]]
-    * @return [[com.vngrs.etl.Extractor]]
+    * @return [[com.vngrs.etl.Extract]]
     */
-  def apply[A](rdd: RDD[A]): Extractor[A] = new Extractor[A] {
+  def apply[A](rdd: RDD[A]): Extract[A] = new Extract[A] {
 
     /**
       * Returns given [[org.apache.spark.rdd.RDD]].
@@ -47,13 +45,13 @@ object Extractor {
   }
 
   /**
-    * Creates an [[com.vngrs.etl.Extractor]] from given [[Iterable]].
+    * Creates an [[com.vngrs.etl.Extract]] from given [[Iterable]].
     *
     * @param it [[Iterable]]
     * @tparam A Type of the [[Iterable]]
-    * @return [[com.vngrs.etl.Extractor]]
+    * @return [[com.vngrs.etl.Extract]]
     */
-  def apply[A: ClassTag](it: Iterable[A]): Extractor[A] = new Extractor[A] {
+  def apply[A: ClassTag](it: Iterable[A]): Extract[A] = new Extract[A] {
 
     /**
       * Parallelize given [[Iterable]].
@@ -62,5 +60,23 @@ object Extractor {
       * @return Extracted [[org.apache.spark.rdd.RDD]]
       */
     override def apply(sc: SparkContext): RDD[A] = sc.parallelize[A](it.toSeq)
+  }
+
+  /**
+    * Creates an Extractor by calling given function `f`
+    *
+    * @param f Function to supply [[org.apache.spark.rdd.RDD]]
+    * @tparam A Type of the [[org.apache.spark.rdd.RDD]]
+    * @return [[com.vngrs.etl.Extract]]
+    */
+  def apply[A: ClassTag](f: SparkContext => RDD[A]): Extract[A] = new Extract[A] {
+
+    /**
+      * Runs given function `f`
+      *
+      * @param sc [[org.apache.spark.SparkContext]]
+      * @return Extracted [[org.apache.spark.rdd.RDD]]
+      */
+    override def apply(sc: SparkContext): RDD[A] = f(sc)
   }
 }

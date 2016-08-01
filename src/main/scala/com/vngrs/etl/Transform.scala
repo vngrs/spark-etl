@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
   *
   * @tparam A Type of the data ([[org.apache.spark.rdd.RDD]]).
   */
-trait Transformer[A, B] {
+trait Transform[A, B] {
 
   /**
     * Runs transformation operation,
@@ -23,19 +23,17 @@ trait Transformer[A, B] {
 /**
   * Companion object which acts as a Factory.
   */
-// Since this is a factory object, overloading warning has been suppressed
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-object Transformer {
+object Transform {
 
   /**
-    * Creates a mapper [[com.vngrs.etl.Transformer]] by calling function `f` on given `data`.
+    * Creates a mapper [[com.vngrs.etl.Transform]] by calling function `f` on given `data`.
     *
     * @param f Mapper function
     * @tparam A Type of the input data [[org.apache.spark.rdd.RDD]]
-    * @tparam B Type of the ouput data [[org.apache.spark.rdd.RDD]]
-    * @return [[com.vngrs.etl.Transformer]]
+    * @tparam B Type of the output data [[org.apache.spark.rdd.RDD]]
+    * @return [[com.vngrs.etl.Transform]]
     */
-  def apply[A: ClassTag, B: ClassTag](f: A => B): Transformer[A, B] = new Transformer[A, B] {
+  def apply[A: ClassTag, B: ClassTag](f: A => B): Transform[A, B] = new Transform[A, B] {
     /**
       * Maps whole `input` with function `f`.
       *
@@ -50,9 +48,9 @@ object Transformer {
     *
     * @param f Filterer function
     * @tparam A Type of the data [[org.apache.spark.rdd.RDD]]
-    * @return [[com.vngrs.etl.Transformer]]
+    * @return [[com.vngrs.etl.Transform]]
     */
-  def filter[A: ClassTag](f: A => Boolean): Transformer[A, A] = new Transformer[A, A] {
+  def filter[A: ClassTag](f: A => Boolean): Transform[A, A] = new Transform[A, A] {
 
     /**
       * Filters `input` with given function `f`.
