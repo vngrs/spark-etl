@@ -36,8 +36,12 @@ dependencyOverrides ++= Set(
 
 wartremoverErrors ++= Warts.unsafe
 
+// NoNeedForMonad =>
 // wartremover bug #106
-wartremoverWarnings ++= Warts.allBut(Wart.NoNeedForMonad)
+// Overloading =>
+// We use lots of overloading in companion objects,
+// also it gives warning for case classes' constructors (apply method)
+wartremoverWarnings ++= Warts.allBut(Wart.NoNeedForMonad, Wart.Overloading)
 
 // coverage settings
 coverageEnabled := true
@@ -47,3 +51,6 @@ coverageMinimum := 80
 coverageFailOnMinimum := true
 
 coverageHighlighting := false
+
+// Only one spark context is allowed at the same time
+parallelExecution in Test := false
