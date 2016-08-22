@@ -34,14 +34,19 @@ dependencyOverrides ++= Set(
   "org.scalamacros" % "quasiquotes_2.10" % "2.0.1"
 )
 
-wartremoverErrors ++= Warts.unsafe
-
 // NoNeedForMonad =>
 // wartremover bug #106
 // Overloading =>
 // We use lots of overloading in companion objects,
 // also it gives warning for case classes' constructors (apply method)
-wartremoverWarnings ++= Warts.allBut(Wart.NoNeedForMonad, Wart.Overloading)
+// Throw =>
+// Unfortunately for now, we need use throw expressions for situation
+// that has really small chance to occur instead of Try or Either
+val excludedWarts = Seq(Wart.NoNeedForMonad, Wart.Overloading, Wart.Throw)
+
+wartremoverErrors ++= Warts.unsafe.filterNot(w => excludedWarts.exists(_.clazz == w.clazz))
+
+wartremoverWarnings ++= Warts.allBut(excludedWarts:_*)
 
 // coverage settings
 coverageEnabled := true
@@ -51,6 +56,10 @@ coverageMinimum := 80
 coverageFailOnMinimum := true
 
 coverageHighlighting := false
+
+// NoSchemaException =>
+// It is a very basic Exception class. There is no need to test it since it will work if it can be compiled.
+coverageExcludedPackages := "NoSchemaException"
 
 // Only one spark context is allowed at the same time
 parallelExecution in Test := false
