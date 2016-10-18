@@ -3,7 +3,7 @@ package com.vngrs.etl.utils
 import com.vngrs.etl.exceptions.NoSchemaException
 import com.vngrs.etl.utils.rdd.SchemaResult.{EmptyRdd, Found, NotFound}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.Row
+import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.sql.types.StructType
 
 import scala.util.{Failure, Success, Try}
@@ -26,6 +26,13 @@ object rdd {
       * @return
       */
     def nonEmpty(): Boolean = !rdd.isEmpty()
+
+    /**
+      * Creates a new [[org.apache.spark.sql.SQLContext]] with [[org.apache.spark.SparkContext]] inside the `rdd`.
+      *
+      * @return newly created [[org.apache.spark.sql.SQLContext]]
+      */
+    def sqlContext: SQLContext = new SQLContext(rdd.sparkContext)
   }
 
   /**
